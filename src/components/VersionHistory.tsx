@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { History, Plus, RotateCcw, Layers, RefreshCw, Eye, X } from 'lucide-react';
+import { History, Plus, RotateCcw, Layers, RefreshCw, Eye, X, Trash2 } from 'lucide-react';
 
 interface Snapshot {
   id: string;
@@ -125,6 +125,39 @@ export default function VersionHistory({
     setPreviewingId(null);
     onPreviewVersion('', null);
     setTimeout(fetchSnapshots, 800);
+  };
+
+  const handleDelete = async (snapshotId: string) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this checkpoint snapshot?");
+    if (!confirmDelete) return;
+
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      const res = await fetch(`/api/documents/${documentId}/snapshot?snapshotId=${snapshotId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          if (previewingId === snapshotId) {
+            onPreviewVersion('', null);
+            setPreviewingId(null);
+          }
+          fetchSnapshots();
+        } else {
+          alert(data.message || 'Failed to delete snapshot');
+        }
+      } else {
+        alert('Failed to delete snapshot');
+      }
+    } catch (err) {
+      console.error('Error deleting snapshot', err);
+      alert('Error deleting snapshot');
+    }
   };
 
   const generateTimelineSummary = async () => {
@@ -264,6 +297,15 @@ export default function VersionHistory({
                           >
                             <RotateCcw className="h-3.5 w-3.5" />
                             <span>Restore</span>
+                          </button>
+                        )}
+                        {userRole === 'OWNER' && (
+                          <button
+                            onClick={() => handleDelete(snap.id)}
+                            className="flex items-center gap-0.5 text-red-500 hover:text-red-650 transition-colors font-medium cursor-pointer"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            <span>Delete</span>
                           </button>
                         )}
                       </div>

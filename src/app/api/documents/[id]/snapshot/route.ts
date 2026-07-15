@@ -177,3 +177,62 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ success: false, message: 'Internal Server Error', error: error.message }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id: documentId } = await params;
+  
+  try {
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+    
+    const token = authHeader.split(' ')[1];
+    const session = verifyToken(token);
+    if (!session) {
+      return NextResponse.json({ success: false, message: 'Invalid token session' }, { status: 401 });
+    }
+
+    if (session.role !== 'OWNER') {
+      return NextResponse.json({ success: false, message: 'Forbidden: Only owners can delete snapshots' }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const snapshotId = searchParams.get('snapshotId');
+    if (!snapshotId) {
+      return NextResponse.json({ success: false, message: 'Snapshot ID is required' }, { status: 400 });
+    }
+
+    let dbConnected = true;
+
+    try {
+      const snap = await db.versionSnapshot.findUnique({
+        where: { id: snapshotId },
+        include: { document: true }
+      });
+
+      if (!snap || snap.documentId !== documentId) {
+        return NextResponse.json({ success: false, message: 'Snapshot not found' }, { status: 404 });
+      }
+
+      if (snap.document.ownerId !== session.id && snap.documentId !== 'default-doc') {
+        return NextResponse.json({ success: false, message: 'Access denied' }, { status: 403 });
+      }
+
+      await db.versionSnapshot.delete({
+        where: { id: snapshotId }
+      });
+    } catch (dbErr) {
+      dbConnected = false;
+      const list = mockSnapshots.get(documentId) || [];
+      const updated = list.filter(s => s.id !== snapshotId);
+      mockSnapshots.set(documentId, updated);
+    }
+
+    return NextResponse.json({ success: true, message: 'Snapshot deleted' });
+  } catch (err: any) {
+    console.error('[Snapshot Delete Error]:', err);
+    return NextResponse.json({ success: false, message: 'Internal Server Error', error: err.message }, { status: 500 });
+  }
+}
+
