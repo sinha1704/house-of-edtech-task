@@ -1,5 +1,5 @@
 import { 
-  getPendingMutations, 
+  getPendingMutationsForDoc,
   updateMutationStatus, 
   deleteMutation, 
   saveLocalDocument, 
@@ -85,8 +85,7 @@ class SyncEngine {
         return;
       }
 
-      const pending = await getPendingMutations();
-      const docMutations = pending.filter(m => m.documentId === documentId);
+      const docMutations = await getPendingMutationsForDoc(documentId);
       
       const localDoc = await getLocalDocument(documentId);
       const clientVersion = localDoc ? localDoc.version : 0;
@@ -137,8 +136,8 @@ class SyncEngine {
         const currentLocal = await getLocalDocument(documentId);
         
         if (currentLocal) {
-          const postSyncPending = await getPendingMutations();
-          const hasNewLocalEdits = postSyncPending.some(m => m.documentId === documentId);
+          const postSyncPending = await getPendingMutationsForDoc(documentId);
+          const hasNewLocalEdits = postSyncPending.length > 0;
 
           if (!hasNewLocalEdits) {
             await saveLocalDocument({

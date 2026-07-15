@@ -81,9 +81,18 @@ export async function getPendingMutations(): Promise<OfflineMutation[]> {
     .sortBy('timestamp');
 }
 
+export async function getPendingMutationsForDoc(documentId: string): Promise<OfflineMutation[]> {
+  return await localDb.mutationQueue
+    .where('documentId')
+    .equals(documentId)
+    .filter(m => m.status === 'pending')
+    .toArray();
+}
+
 export async function updateMutationStatus(id: string, status: 'pending' | 'syncing' | 'failed'): Promise<void> {
   await localDb.mutationQueue.update(id, { status });
 }
+
 
 export async function deleteMutation(id: string): Promise<void> {
   await localDb.mutationQueue.delete(id);

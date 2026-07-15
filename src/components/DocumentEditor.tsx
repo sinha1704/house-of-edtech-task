@@ -216,13 +216,19 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
     setPreviewVersion(ver);
   };
 
+  const stateRef = useRef({ content, title, user });
+  useEffect(() => {
+    stateRef.current = { content, title, user };
+  }, [content, title, user]);
+
   const triggerInlineAi = async () => {
-    if (user?.role === 'VIEWER') return;
+    const { content: currentContent, user: currentUser, title: currentTitle } = stateRef.current;
+    if (currentUser?.role === 'VIEWER') return;
     if (!textareaRef.current) return;
 
     const textarea = textareaRef.current;
     const cursor = textarea.selectionStart;
-    const contextText = content.substring(0, cursor);
+    const contextText = currentContent.substring(0, cursor);
     
     if (!contextText.trim()) return;
     setIsAiLoading(true);
@@ -242,9 +248,9 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
         const data = await res.json();
         if (data.success && data.text) {
           const aiText = data.text;
-          const newContent = content.substring(0, cursor) + aiText + content.substring(cursor);
+          const newContent = currentContent.substring(0, cursor) + aiText + currentContent.substring(cursor);
           setContent(newContent);
-          persistChanges(title, newContent);
+          persistChanges(currentTitle, newContent);
 
           setTimeout(() => {
             textarea.focus();
@@ -269,7 +275,7 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [content, title, user]);
+  }, []);
 
   const isReadOnly = user?.role === 'VIEWER' || previewVersion !== null;
 
