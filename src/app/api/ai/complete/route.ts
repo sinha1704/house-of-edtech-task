@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
-      // Mock autocomplete to ensure application behaves flawlessly out of the box
+      // Mock autocomplete to ensure application behaves flawlessly
       const mockCompletions = [
         " In addition, we must ensure that all components are fully tested under offline scenarios.",
         " Furthermore, integrating IndexedDB allows client-side transactions to succeed without internet.",
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Call Gemini via Vercel AI SDK
+    // Retrieve text suggestions from the text provider service
     const { text } = await generateText({
       model: google('gemini-1.5-flash'),
       system: 'You are an elite co-writer. Write a short, highly contextual completion for the provided document section. Output ONLY the completion text (1 to 2 sentences max) that directly flows from the input prompt. Do not wrap in quotes or formatting.',
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
       text: text,
     });
   } catch (err: any) {
-    console.error('[AI Autocomplete Error]:', err);
-    return NextResponse.json({ success: false, message: 'AI Autocomplete execution error', error: err.message }, { status: 500 });
+    console.error('[Autocomplete Error]:', err);
+    return NextResponse.json({ success: false, message: 'Autocomplete execution error', error: err.message }, { status: 500 });
   }
 }

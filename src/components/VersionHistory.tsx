@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { History, Plus, RotateCcw, BrainCircuit, RefreshCw, Eye, X } from 'lucide-react';
+import { History, Plus, RotateCcw, Layers, RefreshCw, Eye, X } from 'lucide-react';
 
 interface Snapshot {
   id: string;
@@ -42,8 +42,8 @@ export default function VersionHistory({
   const [comment, setComment] = useState('');
   const [creating, setCreating] = useState(false);
   const [previewingId, setPreviewingId] = useState<string | null>(null);
-  const [aiSummary, setAiSummary] = useState<string>('');
-  const [summarizing, setSummarizing] = useState(false);
+  const [timelineSummary, setTimelineSummary] = useState<string>('');
+  const [analyzingTimeline, setAnalyzingTimeline] = useState(false);
 
   const fetchSnapshots = useCallback(async () => {
     const token = localStorage.getItem('token');
@@ -127,14 +127,14 @@ export default function VersionHistory({
     setTimeout(fetchSnapshots, 800);
   };
 
-  const generateAiSummary = async () => {
+  const generateTimelineSummary = async () => {
     if (snapshots.length === 0) {
-      setAiSummary('Create checkpoints to analyze.');
+      setTimelineSummary('Create checkpoints to analyze.');
       return;
     }
 
-    setSummarizing(true);
-    setAiSummary('');
+    setAnalyzingTimeline(true);
+    setTimelineSummary('');
     
     try {
       const token = localStorage.getItem('token');
@@ -158,17 +158,17 @@ export default function VersionHistory({
       if (res.ok) {
         const data = await res.json();
         if (data.success) {
-          setAiSummary(data.summary);
+          setTimelineSummary(data.summary);
         } else {
-          setAiSummary('Failed: ' + (data.message || 'Error'));
+          setTimelineSummary('Failed: ' + (data.message || 'Error'));
         }
       } else {
-        setAiSummary('Service unreachable.');
+        setTimelineSummary('Service unreachable.');
       }
     } catch (err) {
-      setAiSummary('Error generating summary.');
+      setTimelineSummary('Error generating summary.');
     } finally {
-      setSummarizing(false);
+      setAnalyzingTimeline(false);
     }
   };
 
@@ -278,22 +278,22 @@ export default function VersionHistory({
 
       <div className="p-4 border-t border-border bg-background/30">
         <button
-          onClick={generateAiSummary}
-          disabled={summarizing}
+          onClick={generateTimelineSummary}
+          disabled={analyzingTimeline}
           className="w-full flex items-center justify-center gap-2 bg-primary/10 hover:bg-primary/15 text-primary rounded-lg text-xs py-2.5 font-semibold transition-all border border-primary/20 cursor-pointer"
         >
-          {summarizing ? (
+          {analyzingTimeline ? (
             <RefreshCw className="h-3.5 w-3.5 animate-spin" />
           ) : (
-            <BrainCircuit className="h-3.5 w-3.5" />
+            <Layers className="h-3.5 w-3.5" />
           )}
           <span>Analyze Checkpoints</span>
         </button>
 
-        {aiSummary && (
+        {timelineSummary && (
           <div className="mt-3 p-3 rounded-lg bg-primary/[0.03] border border-primary/15 text-[11px] text-muted-foreground max-h-40 overflow-y-auto leading-relaxed">
-            <span className="font-semibold text-primary block mb-1.5">AI Analysis:</span>
-            <div className="whitespace-pre-wrap">{aiSummary}</div>
+            <span className="font-semibold text-primary block mb-1.5">Checkpoint Summary:</span>
+            <div className="whitespace-pre-wrap">{timelineSummary}</div>
           </div>
         )}
       </div>

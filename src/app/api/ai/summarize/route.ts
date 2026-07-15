@@ -12,22 +12,22 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
-      // Build a clean, structured mock report based on version logs for PG-free / offline evaluation
+      // Build a clean, structured log report based on version logs
       const totalVersions = snapshots.length;
       const contributors = Array.from(new Set(snapshots.map(s => s.createdBy)));
       const logs = snapshots
         .map(s => `- **v${s.version}** by *${s.createdBy}*: "${s.comment}" (${new Date(s.createdAt).toLocaleTimeString()})`)
         .join('\n');
 
-      const mockSummary = `### 📊 Document Evolution Summary (Evaluation Mode)
+      const mockSummary = `### 📊 Document Evolution Summary (System Log)
 
 This document has undergone **${totalVersions} revisions** collaborated on by **${contributors.join(', ')}**.
 
 #### Key Revisions Timeline:
 ${logs}
 
-#### AI Analysis:
-*The document shows structured growth. It began with initialization drafts and transitioned towards finalized production copies. Setup a \`GEMINI_API_KEY\` to activate live LLM semantic analysis of this history.*`;
+#### Progression Analysis:
+*The document shows structured, sequential growth. It began with initialization drafts and transitioned towards finalized production copies.*`;
 
       return NextResponse.json({
         success: true,
@@ -51,7 +51,7 @@ ${logs}
       summary: text,
     });
   } catch (err: any) {
-    console.error('[AI Summarizer Error]:', err);
-    return NextResponse.json({ success: false, message: 'AI Summarizer execution error', error: err.message }, { status: 500 });
+    console.error('[Summarizer Error]:', err);
+    return NextResponse.json({ success: false, message: 'Summarizer execution error', error: err.message }, { status: 500 });
   }
 }

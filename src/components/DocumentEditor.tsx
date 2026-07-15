@@ -9,7 +9,7 @@ import Footer from './Footer';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-  Sparkles, 
+  Zap, 
   Wifi, 
   WifiOff, 
   ChevronRight, 
@@ -43,7 +43,7 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
   const [previewContent, setPreviewContent] = useState<string | null>(null);
   const [previewVersion, setPreviewVersion] = useState<number | null>(null);
   const [isSavingLocal, setIsSavingLocal] = useState(false);
-  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
   const [mockOffline, setMockOffline] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -221,7 +221,7 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
     stateRef.current = { content, title, user };
   }, [content, title, user]);
 
-  const triggerInlineAi = async () => {
+  const triggerInlineAutocomplete = async () => {
     const { content: currentContent, user: currentUser, title: currentTitle } = stateRef.current;
     if (currentUser?.role === 'VIEWER') return;
     if (!textareaRef.current) return;
@@ -231,7 +231,7 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
     const contextText = currentContent.substring(0, cursor);
     
     if (!contextText.trim()) return;
-    setIsAiLoading(true);
+    setIsCompleting(true);
 
     try {
       const token = localStorage.getItem('token');
@@ -247,22 +247,22 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
       if (res.ok) {
         const data = await res.json();
         if (data.success && data.text) {
-          const aiText = data.text;
-          const newContent = currentContent.substring(0, cursor) + aiText + currentContent.substring(cursor);
+          const completionText = data.text;
+          const newContent = currentContent.substring(0, cursor) + completionText + currentContent.substring(cursor);
           setContent(newContent);
           persistChanges(currentTitle, newContent);
 
           setTimeout(() => {
             textarea.focus();
-            textarea.selectionStart = cursor + aiText.length;
-            textarea.selectionEnd = cursor + aiText.length;
+            textarea.selectionStart = cursor + completionText.length;
+            textarea.selectionEnd = cursor + completionText.length;
           }, 50);
         }
       }
     } catch (err) {
-      console.error('AI Completion failed', err);
+      console.error('Text completion failed', err);
     } finally {
-      setIsAiLoading(false);
+      setIsCompleting(false);
     }
   };
 
@@ -270,7 +270,7 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.code === 'Space') {
         e.preventDefault();
-        triggerInlineAi();
+        triggerInlineAutocomplete();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -438,15 +438,15 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
               )}
               {user?.role !== 'VIEWER' && previewVersion === null && (
                 <Button
-                  onClick={triggerInlineAi}
-                  disabled={isAiLoading || !content.trim()}
+                  onClick={triggerInlineAutocomplete}
+                  disabled={isCompleting || !content.trim()}
                   variant="outline"
                   size="sm"
                   className="flex items-center gap-2 bg-primary/5 hover:bg-primary/10 text-primary border border-primary/25 rounded-full shadow-md cursor-pointer text-xs px-4 py-2 transition-all duration-300"
                   title="Autocomplete text at cursor (Ctrl+Space)"
                 >
-                  <Sparkles className={`h-3.5 w-3.5 ${isAiLoading ? 'animate-bounce' : ''}`} />
-                  <span>{isAiLoading ? 'Autocompleting...' : 'Autocomplete'}</span>
+                  <Zap className={`h-3.5 w-3.5 ${isCompleting ? 'animate-bounce' : ''}`} />
+                  <span>{isCompleting ? 'Completing...' : 'Autocomplete'}</span>
                 </Button>
               )}
             </div>
