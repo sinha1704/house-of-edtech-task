@@ -1,5 +1,5 @@
 import React from 'react';
-import { Github, Heart } from 'lucide-react';
+import { Github, Linkedin, Heart } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -21,10 +21,20 @@ export default function Footer() {
             <Github className="h-4 w-4" />
             <span>GitHub</span>
           </a>
+          <a
+            href="https://www.linkedin.com/in/shatadal-sundar-sinha-96b27b239/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 hover:text-blue-400 transition-colors duration-200"
+          >
+            <Linkedin className="h-4 w-4" />
+            <span>LinkedIn</span>
+          </a>
         </div>
       </div>
     </footer>
   );
 }
+
 
 
