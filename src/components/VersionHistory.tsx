@@ -44,6 +44,7 @@ export default function VersionHistory({
   const [previewingId, setPreviewingId] = useState<string | null>(null);
   const [timelineSummary, setTimelineSummary] = useState<string>('');
   const [analyzingTimeline, setAnalyzingTimeline] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   const fetchSnapshots = useCallback(async () => {
     const token = localStorage.getItem('token');
@@ -127,10 +128,7 @@ export default function VersionHistory({
     setTimeout(fetchSnapshots, 800);
   };
 
-  const handleDelete = async (snapshotId: string) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this checkpoint snapshot?");
-    if (!confirmDelete) return;
-
+  const executeDelete = async (snapshotId: string) => {
     const token = localStorage.getItem('token');
     if (!token) return;
 
@@ -301,7 +299,7 @@ export default function VersionHistory({
                         )}
                         {userRole === 'OWNER' && (
                           <button
-                            onClick={() => handleDelete(snap.id)}
+                            onClick={() => setDeleteTargetId(snap.id)}
                             className="flex items-center gap-0.5 text-red-500 hover:text-red-650 transition-colors font-medium cursor-pointer"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -339,6 +337,38 @@ export default function VersionHistory({
           </div>
         )}
       </div>
+
+      {deleteTargetId !== null && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-2xl p-6 max-w-sm w-full shadow-2xl text-foreground animate-scale-in">
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <Trash2 className="h-4 w-4 text-red-500" />
+              <span>Delete Checkpoint</span>
+            </h3>
+            <p className="text-xs text-muted-foreground mt-2.5 leading-relaxed">
+              Are you sure you want to delete this checkpoint? This action cannot be undone.
+            </p>
+            <div className="flex items-center justify-end gap-3 mt-6">
+              <button
+                onClick={() => setDeleteTargetId(null)}
+                className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-muted hover:bg-neutral-200 dark:hover:bg-neutral-800 text-foreground transition-all border border-border cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  const targetId = deleteTargetId;
+                  setDeleteTargetId(null);
+                  await executeDelete(targetId);
+                }}
+                className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-red-600 hover:bg-red-500 text-white transition-all cursor-pointer"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
