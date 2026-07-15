@@ -50,6 +50,11 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [mockOffline, setMockOffline] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -334,7 +339,7 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
             <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-neutral-500 mt-0.5">
               <span>Local version: {version}</span>
               <ChevronRight className="h-3 w-3" />
-              <span>Last updated: {new Date(updatedAt).toLocaleTimeString()}</span>
+              <span>Last updated: {mounted ? new Date(updatedAt).toLocaleTimeString() : ''}</span>
             </div>
           </div>
         </div>
