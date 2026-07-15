@@ -1,0 +1,61 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+model User {
+  id           String            @id @default(uuid())
+  email        String            @unique
+  passwordHash String
+  name         String
+  role         Role              @default(VIEWER)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  documents    Document[]
+  snapshots    VersionSnapshot[]
+}
+
+model Document {
+  id        String            @id @default(uuid())
+  title     String
+  content   String
+  ownerId   String
+  owner     User              @relation(fields: [ownerId], references: [id])
+  version   Int               @default(1)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  snapshots VersionSnapshot[]
+}
+
+model VersionSnapshot {
+  id          String   @id @default(uuid())
+  documentId  String
+  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  title       String
+  content     String
+  version     Int
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  comment     String?
+  createdAt   DateTime @default(now())
+}
+
+model SyncLog {
+  id         String   @id @default(uuid())
+  documentId String?
+  userId     String?
+  action     String
+  status     String
+  message    String?
+  timestamp  DateTime @default(now())
+}
