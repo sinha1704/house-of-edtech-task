@@ -20,7 +20,8 @@ import {
   RotateCcw,
   History,
   Sun,
-  Moon
+  Moon,
+  LogOut
 } from 'lucide-react';
 
 interface DocumentEditorProps {
@@ -154,6 +155,12 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
     } catch (err) {
       console.error('Role switch failed', err);
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+    window.location.href = '/';
   };
 
   const persistChanges = (updatedTitle: string, updatedContent: string) => {
@@ -370,6 +377,13 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
                   <SelectItem value="VIEWER">Viewer</SelectItem>
                 </SelectContent>
               </Select>
+              <button
+                onClick={handleLogout}
+                className="p-2.5 rounded-lg border border-border bg-card hover:bg-muted text-foreground hover:text-red-500 hover:border-red-500/20 transition-all duration-200 cursor-pointer shrink-0"
+                title="Log Out"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
             </div>
           )}
 
