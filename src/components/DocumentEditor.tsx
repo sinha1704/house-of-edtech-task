@@ -18,7 +18,9 @@ import {
   FileText,
   User,
   RotateCcw,
-  History
+  History,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 interface DocumentEditorProps {
@@ -45,6 +47,7 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
   const [mockOffline, setMockOffline] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   
   useEffect(() => {
     setMounted(true);
@@ -54,6 +57,11 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    const saved = localStorage.getItem('theme') as 'light' | 'dark' | null;
+    const initial = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    setTheme(initial);
+    document.documentElement.classList.toggle('dark', initial === 'dark');
+
     const token = localStorage.getItem('token');
     if (token) {
       try {
@@ -106,6 +114,13 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
 
     loadDoc();
   }, [documentId]);
+
+  const toggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    localStorage.setItem('theme', next);
+    document.documentElement.classList.toggle('dark', next === 'dark');
+  };
 
   const handleOfflineToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.checked;
@@ -259,23 +274,23 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
   const isReadOnly = user?.role === 'VIEWER' || previewVersion !== null;
 
   return (
-    <div className="flex flex-col flex-1 h-screen bg-[#020204] overflow-hidden">
-      <header className="glass-panel w-full flex flex-col md:flex-row md:items-center justify-between px-6 py-4 gap-4 z-10 border-b border-white/[0.04]">
+    <div className="flex flex-col flex-1 h-screen bg-background text-foreground overflow-hidden transition-colors duration-300">
+      <header className="glass-panel w-full flex flex-col md:flex-row md:items-center justify-between px-6 py-4 gap-4 z-10 border-b border-border">
         <div className="flex items-center gap-3.5">
-          <div className="bg-blue-500/10 border border-blue-500/20 p-2.5 rounded-lg text-blue-400 shrink-0">
+          <div className="bg-blue-500/10 border border-blue-500/20 p-2.5 rounded-lg text-blue-500 dark:text-blue-400 shrink-0">
             <FileText className="h-5 w-5" />
           </div>
           <div>
             {isReadOnly ? (
-              <h1 className="text-base sm:text-lg font-semibold text-neutral-200 flex items-center gap-2 flex-wrap">
+              <h1 className="text-base sm:text-lg font-semibold flex items-center gap-2 flex-wrap">
                 <span>{title}</span>
                 {previewVersion !== null && (
-                  <span className="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/25 px-2.5 py-0.5 rounded-full font-medium">
+                  <span className="text-[10px] bg-blue-500/10 text-blue-500 border border-blue-500/25 px-2.5 py-0.5 rounded-full font-medium">
                     Previewing v{previewVersion}
                   </span>
                 )}
                 {user?.role === 'VIEWER' && previewVersion === null && (
-                  <span className="text-[10px] bg-neutral-800 text-neutral-400 border border-neutral-700/50 px-2.5 py-0.5 rounded-full font-medium">
+                  <span className="text-[10px] bg-neutral-200 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 border border-border px-2.5 py-0.5 rounded-full font-medium">
                     Read Only
                   </span>
                 )}
@@ -286,10 +301,10 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
                 value={title}
                 onChange={handleTitleChange}
                 placeholder="Untitled Document"
-                className="bg-transparent text-base sm:text-lg font-semibold text-white focus:outline-none border-b border-transparent focus:border-white/20 px-1 py-0.5 transition-all w-full max-w-[200px] sm:max-w-xs"
+                className="bg-transparent text-base sm:text-lg font-semibold text-foreground focus:outline-none border-b border-transparent focus:border-border px-1 py-0.5 transition-all w-full max-w-[200px] sm:max-w-xs"
               />
             )}
-            <div className="flex items-center gap-1.5 text-[10px] text-neutral-500 mt-1">
+            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mt-1">
               <span>Version: {version}</span>
               <ChevronRight className="h-3 w-3" />
               <span>Synced: {mounted ? new Date(updatedAt).toLocaleTimeString() : ''}</span>
@@ -298,9 +313,17 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
         </div>
 
         <div className="flex flex-wrap items-center gap-4 w-full md:w-auto md:justify-end">
+          <button
+            onClick={toggleTheme}
+            className="p-2.5 rounded-lg border border-border bg-card hover:bg-muted text-foreground transition-all duration-200 cursor-pointer shrink-0"
+            title="Toggle Theme"
+          >
+            {theme === 'dark' ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-indigo-500" />}
+          </button>
+
           <div className="flex items-center gap-2.5">
             <NetworkStatus />
-            <label className="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-white/5 bg-white/[0.02] text-xs font-medium cursor-pointer text-neutral-300 hover:text-white hover:bg-white/[0.05] transition-all select-none">
+            <label className="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-border bg-card text-xs font-medium cursor-pointer text-foreground hover:bg-muted transition-all select-none">
               {mockOffline ? (
                 <>
                   <WifiOff className="h-3.5 w-3.5 text-amber-500" />
@@ -322,20 +345,20 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
           </div>
 
           {user && (
-            <div className="flex items-center gap-3 border-l border-white/10 pl-4">
-              <div className="flex items-center gap-2 text-xs bg-black/35 border border-white/5 rounded-lg px-3 py-2">
+            <div className="flex items-center gap-3 border-l border-border pl-4">
+              <div className="flex items-center gap-2 text-xs bg-card border border-border rounded-lg px-3 py-2 text-foreground">
                 <User className="h-3.5 w-3.5 text-neutral-400" />
-                <span className="text-neutral-300 font-medium hidden md:inline">{user.name}</span>
+                <span className="text-neutral-700 dark:text-neutral-300 font-medium hidden md:inline">{user.name}</span>
                 <span className="text-neutral-500 text-[10px] uppercase font-semibold">[{user.role}]</span>
               </div>
               <Select
                 value={user.role}
                 onValueChange={(val: string) => handleRoleSwitch(val as any)}
               >
-                <SelectTrigger className="w-[105px] sm:w-[120px] bg-[#0d0d0f] border-white/10">
+                <SelectTrigger className="w-[105px] sm:w-[120px] bg-card border-border text-foreground">
                   <SelectValue placeholder="Select Role" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#0f0f12] border-white/10 text-white">
+                <SelectContent className="bg-card border-border text-foreground">
                   <SelectItem value="OWNER">Owner</SelectItem>
                   <SelectItem value="EDITOR">Editor</SelectItem>
                   <SelectItem value="VIEWER">Viewer</SelectItem>
@@ -348,7 +371,7 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
             variant="outline"
             size="sm"
             onClick={() => setShowSidebar(!showSidebar)}
-            className="flex items-center gap-2 lg:hidden text-xs border border-white/10 hover:bg-white/5 px-3 py-2 cursor-pointer bg-transparent text-white"
+            className="flex items-center gap-2 lg:hidden text-xs border border-border hover:bg-muted px-3 py-2 cursor-pointer bg-transparent text-foreground"
             title="Toggle Version History"
           >
             <History className="h-4 w-4 text-neutral-400" />
@@ -358,11 +381,11 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
       </header>
 
       <div className="flex flex-1 overflow-hidden relative">
-        <main className="flex-1 flex flex-col p-6 overflow-y-auto relative bg-[#030304]">
+        <main className="flex-1 flex flex-col p-6 overflow-y-auto relative bg-background">
           {previewVersion !== null && (
-            <div className="w-full flex items-center justify-between mb-5 px-5 py-3.5 rounded-xl border border-blue-500/20 bg-blue-950/15 text-sm text-blue-200 animate-slide-in">
+            <div className="w-full flex items-center justify-between mb-5 px-5 py-3.5 rounded-xl border border-blue-500/20 bg-blue-500/5 text-sm text-blue-800 dark:text-blue-200 animate-slide-in">
               <div className="flex items-center gap-2.5">
-                <BookOpen className="h-4 w-4 text-blue-400" />
+                <BookOpen className="h-4 w-4 text-blue-500 dark:text-blue-400" />
                 <span>Viewing history checkpoint version **{previewVersion}**. Current editor state is preserved.</span>
               </div>
               <div className="flex items-center gap-3">
@@ -370,7 +393,7 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
                   variant="ghost"
                   size="sm"
                   onClick={() => handlePreviewVersion('', null)}
-                  className="text-xs text-neutral-400 hover:text-white transition-colors"
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Exit Preview
                 </Button>
@@ -390,19 +413,19 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
             </div>
           )}
 
-          <div className="flex-1 glass-card rounded-2xl border border-white/5 p-6 flex flex-col relative focus-within:border-indigo-500/20 transition-all duration-300">
+          <div className="flex-1 glass-card rounded-2xl border border-border p-6 flex flex-col relative focus-within:border-primary/20 transition-all duration-300">
             <textarea
               ref={textareaRef}
               value={previewContent !== null ? previewContent : content}
               onChange={handleContentChange}
               disabled={isReadOnly}
               placeholder={isReadOnly ? 'Viewing only...' : 'Write your code and thoughts here...'}
-              className="flex-1 bg-transparent resize-none focus:outline-none text-neutral-200 placeholder-neutral-700 font-mono text-sm leading-relaxed"
+              className="flex-1 bg-transparent resize-none focus:outline-none text-foreground placeholder-neutral-400 dark:placeholder-neutral-600 font-mono text-sm leading-relaxed"
             />
 
             <div className="absolute bottom-5 right-5 flex items-center gap-4">
               {isSavingLocal && (
-                <div className="flex items-center gap-1.5 text-[10px] text-neutral-500 bg-black/40 border border-white/5 px-3 py-1 rounded-full animate-pulse">
+                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground bg-card border border-border px-3 py-1 rounded-full animate-pulse">
                   <Save className="h-3 w-3" />
                   <span>Syncing locally...</span>
                 </div>
@@ -413,10 +436,10 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
                   disabled={isAiLoading || !content.trim()}
                   variant="outline"
                   size="sm"
-                  className="flex items-center gap-2 bg-indigo-950/20 hover:bg-indigo-900/30 text-indigo-400 border border-indigo-500/25 rounded-full shadow-lg hover:shadow-indigo-500/10 cursor-pointer text-xs px-4 py-2 transition-all duration-300"
+                  className="flex items-center gap-2 bg-primary/5 hover:bg-primary/10 text-primary border border-primary/25 rounded-full shadow-md cursor-pointer text-xs px-4 py-2 transition-all duration-300"
                   title="Autocomplete text at cursor (Ctrl+Space)"
                 >
-                  <Sparkles className={`h-3.5 w-3.5 ${isAiLoading ? 'animate-bounce text-indigo-300' : ''}`} />
+                  <Sparkles className={`h-3.5 w-3.5 ${isAiLoading ? 'animate-bounce' : ''}`} />
                   <span>{isAiLoading ? 'Autocompleting...' : 'Autocomplete'}</span>
                 </Button>
               )}
@@ -426,7 +449,7 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
 
         {showSidebar && (
           <div 
-            className="fixed inset-0 bg-black/75 backdrop-blur-sm z-20 lg:hidden transition-all duration-300"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-20 lg:hidden transition-all duration-300"
             onClick={() => setShowSidebar(false)}
           />
         )}
@@ -454,4 +477,5 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
     </div>
   );
 }
+
 

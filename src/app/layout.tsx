@@ -18,10 +18,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark scroll-smooth">
-      <body className={`${inter.variable} font-sans antialiased min-h-screen flex flex-col bg-[#050507]`}>
+    <html lang="en" className="scroll-smooth">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `
+          try {
+            const saved = localStorage.getItem('theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+              document.documentElement.classList.add('dark');
+            } else {
+              document.documentElement.classList.remove('dark');
+            }
+          } catch (_) {}
+        ` }} />
+      </head>
+      <body className={`${inter.variable} font-sans antialiased min-h-screen flex flex-col bg-background text-foreground`}>
         {children}
       </body>
     </html>
   );
 }
+

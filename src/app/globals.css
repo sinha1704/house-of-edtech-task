@@ -3,55 +3,97 @@
 @tailwind utilities;
 
 :root {
-  --background: 240 10% 2%;
-  --foreground: 0 0% 98%;
-  --card: 240 10% 3%;
-  --card-foreground: 0 0% 98%;
-  --popover: 240 10% 3%;
-  --popover-foreground: 0 0% 98%;
+  --background: 220 15% 97%;
+  --foreground: 220 20% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 20% 12%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 20% 12%;
   --primary: 220 90% 56%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 240 4% 10%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 240 4% 8%;
-  --muted-foreground: 240 5% 65%;
-  --accent: 240 4% 12%;
-  --accent-foreground: 0 0% 98%;
+  --secondary: 220 10% 93%;
+  --secondary-foreground: 220 20% 12%;
+  --muted: 220 10% 95%;
+  --muted-foreground: 220 10% 45%;
+  --accent: 220 10% 93%;
+  --accent-foreground: 220 20% 12%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
-  --border: 240 6% 10%;
-  --input: 240 6% 10%;
+  --border: 220 10% 90%;
+  --input: 220 10% 90%;
   --ring: 220 90% 56%;
   --radius: 0.75rem;
+
+  --glass-panel-bg: rgba(255, 255, 255, 0.75);
+  --glass-card-bg: rgba(255, 255, 255, 0.45);
+  --glass-card-hover-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(0, 0, 0, 0.06);
+  --glass-card-hover-border: rgba(99, 102, 241, 0.25);
+  --timeline-line: #e2e8f0;
+}
+
+.dark {
+  --background: 240 10% 6%;
+  --foreground: 240 5% 96%;
+  --card: 240 10% 9%;
+  --card-foreground: 240 5% 96%;
+  --popover: 240 10% 8%;
+  --popover-foreground: 240 5% 96%;
+  --primary: 220 90% 56%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 5% 15%;
+  --secondary-foreground: 240 5% 96%;
+  --muted: 240 5% 12%;
+  --muted-foreground: 240 5% 65%;
+  --accent: 240 5% 15%;
+  --accent-foreground: 240 5% 96%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 5% 15%;
+  --input: 240 5% 15%;
+  --ring: 220 90% 56%;
+
+  --glass-panel-bg: rgba(14, 14, 17, 0.75);
+  --glass-card-bg: rgba(20, 20, 25, 0.45);
+  --glass-card-hover-bg: rgba(25, 25, 32, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.04);
+  --glass-card-hover-border: rgba(99, 102, 241, 0.25);
+  --timeline-line: #1f1f29;
 }
 
 body {
-  background-color: #030303;
-  color: #f3f4f6;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
   overflow-x: hidden;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
 .glass-panel {
-  background: rgba(8, 8, 8, 0.7);
+  background: var(--glass-panel-bg);
   backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
 }
 
 .glass-card {
-  background: rgba(12, 12, 14, 0.45);
+  background: var(--glass-card-bg);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-card:hover {
-  background: rgba(18, 18, 22, 0.65);
-  border-color: rgba(99, 102, 241, 0.25);
+  background: var(--glass-card-hover-bg);
+  border-color: var(--glass-card-hover-border);
   box-shadow: 
-    0 20px 40px -15px rgba(0, 0, 0, 0.7), 
-    0 0 30px 2px rgba(99, 102, 241, 0.05);
+    0 20px 40px -15px rgba(0, 0, 0, 0.08), 
+    0 0 30px 2px rgba(99, 102, 241, 0.03);
   transform: translateY(-2px) scale(1.01);
+}
+
+.dark .glass-card:hover {
+  box-shadow: 
+    0 20px 40px -15px rgba(0, 0, 0, 0.6), 
+    0 0 30px 2px rgba(99, 102, 241, 0.04);
 }
 
 .text-gradient {
@@ -89,16 +131,21 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(3, 3, 3, 0.9);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(var(--foreground), 0.1);
   border-radius: 99px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.12);
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.05);
 }
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--foreground), 0.2);
+}
+
 
 
