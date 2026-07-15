@@ -49,6 +49,7 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
   const [showSidebar, setShowSidebar] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   
   useEffect(() => {
     setMounted(true);
@@ -157,7 +158,7 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
     }
   };
 
-  const handleLogout = () => {
+  const executeLogout = () => {
     localStorage.removeItem('token');
     document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;';
     window.location.href = '/';
@@ -378,7 +379,7 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
                 </SelectContent>
               </Select>
               <button
-                onClick={handleLogout}
+                onClick={() => setShowLogoutModal(true)}
                 className="p-2.5 rounded-lg border border-border bg-card hover:bg-muted text-foreground hover:text-red-500 hover:border-red-500/20 transition-all duration-200 cursor-pointer shrink-0"
                 title="Log Out"
               >
@@ -494,6 +495,37 @@ export default function DocumentEditor({ documentId }: DocumentEditorProps) {
       </div>
 
       <Footer />
+
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-2xl p-6 max-w-sm w-full shadow-2xl text-foreground animate-scale-in">
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <LogOut className="h-4 w-4 text-red-500" />
+              <span>Confirm Log Out</span>
+            </h3>
+            <p className="text-xs text-muted-foreground mt-2.5 leading-relaxed">
+              Are you sure you want to log out of your current session? Any unsaved local edits will be synced when you re-login.
+            </p>
+            <div className="flex items-center justify-end gap-3 mt-6">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-muted hover:bg-neutral-200 dark:hover:bg-neutral-800 text-foreground transition-all border border-border cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowLogoutModal(false);
+                  executeLogout();
+                }}
+                className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-red-600 hover:bg-red-500 text-white transition-all cursor-pointer"
+              >
+                Log Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
