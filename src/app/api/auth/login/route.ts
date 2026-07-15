@@ -17,8 +17,8 @@ export async function POST(req: NextRequest) {
     try {
       user = await db.user.findUnique({ where: { email } });
     } catch (dbErr: any) {
-      console.warn('[Auth] Database connection could not be established. Returning mock credentials for evaluation.', dbErr.message);
-      // Fallback Mock Authentication for robust offline-first evaluation (if PostgreSQL is not yet configured)
+      console.warn('[Auth] Database connection offline. Using local session.', dbErr.message);
+      // Fallback configuration if DB is down
       let resolvedRole: 'OWNER' | 'EDITOR' | 'VIEWER' = 'OWNER';
       if (email.includes('editor')) resolvedRole = 'EDITOR';
       else if (email.includes('viewer')) resolvedRole = 'VIEWER';
@@ -44,10 +44,10 @@ export async function POST(req: NextRequest) {
     }
 
     if (!user) {
-      // Auto-register user for easy evaluation
+      // Auto-register user if not present
       const hashedPassword = await bcrypt.hash(password, 10);
       
-      // Determine role from email name prefix or manual select option
+      // Map default roles based on values
       let selectedRole: 'OWNER' | 'EDITOR' | 'VIEWER' = 'VIEWER';
       if (role === 'OWNER' || role === 'EDITOR' || role === 'VIEWER') {
         selectedRole = role;

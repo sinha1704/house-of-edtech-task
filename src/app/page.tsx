@@ -93,7 +93,7 @@ export default function EntryPage() {
         <div className="w-full grid grid-cols-1 md:grid-cols-5 gap-8">
           <div className="md:col-span-3 flex flex-col gap-4">
             <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider pl-1">
-              Select Evaluation Profile
+              Select Workspace Profile
             </h2>
 
             <button

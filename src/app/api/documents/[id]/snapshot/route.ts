@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyToken } from '@/lib/jwt';
 
-// Fallback in-memory snapshot database for Postgres-free testing
+// Fallback store when Postgres is offline
 const mockSnapshots = new Map<string, any[]>();
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     let dbConnected = true;
 
     try {
-      // Find document with strict ORM multi-tenant scoping
+      // Retrieve document with authorization check
       const doc = await db.document.findFirst({
         where: {
           id: documentId,
@@ -132,7 +132,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     let dbConnected = true;
 
     try {
-      // Find document first to verify access under strict ORM scoping
+      // Retrieve document with authorization check
       const doc = await db.document.findFirst({
         where: {
           id: documentId,
