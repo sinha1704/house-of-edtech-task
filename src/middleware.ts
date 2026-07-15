@@ -20,7 +20,6 @@ function decodeJwt(token: string) {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 1. Protect document editor page routes
   if (pathname.startsWith('/documents')) {
     const token = request.cookies.get('token')?.value;
 
@@ -32,7 +31,6 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // 2. State Isolation: Block VIEWERS from sync and snapshot writes at the Middleware layer
   const isWriteRequest = request.method === 'POST' || request.method === 'PUT' || request.method === 'DELETE';
   if (isWriteRequest && (pathname.includes('/api/documents/') && (pathname.endsWith('/sync') || pathname.endsWith('/snapshot')))) {
     const authHeader = request.headers.get('authorization');
@@ -44,7 +42,7 @@ export function middleware(request: NextRequest) {
       const decoded = decodeJwt(token);
       if (decoded && decoded.role === 'VIEWER') {
         return new NextResponse(
-          JSON.stringify({ success: false, message: 'Forbidden: Viewers strictly blocked from writing/syncing data at middleware layer' }),
+          JSON.stringify({ success: false, message: 'Forbidden' }),
           { status: 403, headers: { 'Content-Type': 'application/json' } }
         );
       }
@@ -60,4 +58,5 @@ export const config = {
     '/api/documents/:path*',
   ],
 };
+
 

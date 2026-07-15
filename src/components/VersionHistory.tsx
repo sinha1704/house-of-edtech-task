@@ -42,8 +42,6 @@ export default function VersionHistory({
   const [comment, setComment] = useState('');
   const [creating, setCreating] = useState(false);
   const [previewingId, setPreviewingId] = useState<string | null>(null);
-  
-  // AI summary states
   const [aiSummary, setAiSummary] = useState<string>('');
   const [summarizing, setSummarizing] = useState(false);
 
@@ -54,9 +52,7 @@ export default function VersionHistory({
     setLoading(true);
     try {
       const res = await fetch(`/api/documents/${documentId}/snapshot`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         const data = await res.json();
@@ -65,7 +61,7 @@ export default function VersionHistory({
         }
       }
     } catch (err) {
-      console.error('[VersionHistory] Error loading snapshots:', err);
+      console.error('Error loading snapshots', err);
     } finally {
       setLoading(false);
     }
@@ -107,7 +103,7 @@ export default function VersionHistory({
         }
       }
     } catch (err) {
-      console.error('[VersionHistory] Error creating snapshot:', err);
+      console.error('Error creating snapshot', err);
     } finally {
       setCreating(false);
     }
@@ -115,7 +111,6 @@ export default function VersionHistory({
 
   const handlePreview = (snap: Snapshot) => {
     if (previewingId === snap.id) {
-      // Clear preview
       setPreviewingId(null);
       onPreviewVersion('', null);
     } else {
@@ -129,13 +124,12 @@ export default function VersionHistory({
     await onRestoreVersion(snap.content, snap.title);
     setPreviewingId(null);
     onPreviewVersion('', null);
-    // Refresh snapshot timeline
     setTimeout(fetchSnapshots, 800);
   };
 
   const generateAiSummary = async () => {
     if (snapshots.length === 0) {
-      setAiSummary('Create some version snapshots first to generate a summary!');
+      setAiSummary('Create checkpoints to analyze.');
       return;
     }
 
@@ -154,7 +148,7 @@ export default function VersionHistory({
           snapshots: snapshots.map((s) => ({
             version: s.version,
             comment: s.comment,
-            content: s.content.substring(0, 1000), // pass a snippet to save context budget
+            content: s.content.substring(0, 1000),
             createdAt: s.createdAt,
             createdBy: s.createdBy.name,
           })),
@@ -166,25 +160,24 @@ export default function VersionHistory({
         if (data.success) {
           setAiSummary(data.summary);
         } else {
-          setAiSummary('Failed to generate summary: ' + (data.message || 'Unknown error'));
+          setAiSummary('Failed: ' + (data.message || 'Error'));
         }
       } else {
-        setAiSummary('Failed to reach AI Summarization endpoint.');
+        setAiSummary('Service unreachable.');
       }
-    } catch (err: any) {
-      setAiSummary('Error generating summary: ' + err.message);
+    } catch (err) {
+      setAiSummary('Error generating summary.');
     } finally {
       setSummarizing(false);
     }
   };
 
   return (
-    <div className="flex flex-col h-full w-80 bg-neutral-900/60 border-l border-white/5 backdrop-blur-lg text-white">
-      {/* Header */}
-      <div className="p-4 border-b border-white/5 flex items-center justify-between">
-        <div className="flex items-center gap-2 font-semibold">
-          <History className="h-4 w-4 text-primary" />
-          <span>Version Snapshots</span>
+    <div className="flex flex-col h-full w-80 bg-[#0b0b0e] border-l border-white/[0.04] backdrop-blur-lg text-white">
+      <div className="p-4 border-b border-white/[0.04] flex items-center justify-between">
+        <div className="flex items-center gap-2 font-medium text-sm text-neutral-300">
+          <History className="h-4 w-4 text-blue-400" />
+          <span>Checkpoint Timeline</span>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -207,22 +200,21 @@ export default function VersionHistory({
         </div>
       </div>
 
-      {/* Snapshot List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-5">
         {userRole !== 'VIEWER' && (
           <form onSubmit={handleCreateSnapshot} className="space-y-2">
             <input
               type="text"
-              placeholder="Save checkpoint comment..."
+              placeholder="Snapshot description..."
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               disabled={creating}
-              className="w-full bg-black/40 border border-white/10 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-white/30 placeholder-neutral-500"
+              className="w-full bg-white/[0.02] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition-colors placeholder-neutral-600"
             />
             <button
               type="submit"
               disabled={creating || !comment.trim()}
-              className="w-full flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-500 disabled:bg-neutral-800 disabled:text-neutral-500 text-white rounded text-xs py-1.5 font-medium transition-colors cursor-pointer"
+              className="w-full flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-500 disabled:bg-neutral-900 disabled:text-neutral-600 text-white rounded-lg text-xs py-2 font-semibold transition-colors cursor-pointer"
             >
               <Plus className="h-3 w-3" />
               <span>Capture Snapshot</span>
@@ -230,51 +222,47 @@ export default function VersionHistory({
           </form>
         )}
 
-        {/* Timeline */}
-        <div className="relative border-l border-white/10 ml-2.5 pl-4 space-y-5 pt-2">
+        <div className="relative border-l border-white/5 ml-2.5 pl-4 space-y-4 pt-1">
           {snapshots.length === 0 ? (
-            <div className="text-neutral-500 text-xs py-4">No snapshots saved yet.</div>
+            <div className="text-neutral-600 text-xs py-4">No checkpoints recorded yet.</div>
           ) : (
             snapshots.map((snap) => {
               const isPreviewing = previewingId === snap.id;
               return (
                 <div key={snap.id} className="relative group">
-                  {/* Timeline bullet */}
-                  <span className={`absolute -left-[21px] mt-1.5 h-2.5 w-2.5 rounded-full border transition-all duration-300 ${
+                  <span className={`absolute -left-[21px] mt-2 h-2 w-2 rounded-full border transition-all duration-300 ${
                     isPreviewing 
                       ? 'bg-blue-500 border-blue-400 ring-4 ring-blue-900/30' 
-                      : 'bg-neutral-800 border-neutral-700 group-hover:border-white/40'
+                      : 'bg-neutral-800 border-neutral-700 group-hover:border-white/30'
                   }`} />
                   
-                  <div className={`p-3 rounded-lg border transition-all duration-300 bg-[#0f0f13]/60 hover:bg-[#13131a]/85 ${
+                  <div className={`p-3.5 rounded-xl border transition-all duration-300 bg-white/[0.01] hover:bg-white/[0.03] ${
                     isPreviewing 
-                      ? 'border-blue-500/40 bg-blue-950/10 shadow-[0_0_15px_-3px_rgba(59,130,246,0.15)] scale-[1.01]' 
-                      : 'border-white/5 hover:border-white/10 hover:translate-y-[-1px]'
+                      ? 'border-blue-500/25 bg-blue-950/5 shadow-[0_0_15px_-3px_rgba(59,130,246,0.1)]' 
+                      : 'border-white/5 hover:border-white/10'
                   }`}>
-                    <div className="flex items-center justify-between text-[10px] text-neutral-400 mb-1">
-                      <span className="font-semibold text-neutral-300">v{snap.version}</span>
+                    <div className="flex items-center justify-between text-[10px] text-neutral-500 mb-1.5">
+                      <span className="font-semibold text-neutral-400">v{snap.version}</span>
                       <span>{new Date(snap.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
-                    <p className="text-xs text-neutral-200 break-words mb-2">{snap.comment}</p>
+                    <p className="text-xs text-neutral-300 break-words mb-3 leading-relaxed">{snap.comment}</p>
                     
-                    <div className="flex items-center justify-between text-[9px] text-neutral-500 border-t border-white/5 pt-1.5">
-                      <span>By: {snap.createdBy.name} ({snap.createdBy.role.toLowerCase()})</span>
-                      <div className="flex items-center gap-1.5">
+                    <div className="flex items-center justify-between text-[9px] text-neutral-500 border-t border-white/5 pt-2">
+                      <span>By: {snap.createdBy.name}</span>
+                      <div className="flex items-center gap-2">
                         <button
                           onClick={() => handlePreview(snap)}
                           className="flex items-center gap-0.5 text-neutral-400 hover:text-white transition-colors"
-                          title="Preview past version"
                         >
-                          <Eye className="h-3 w-3" />
+                          <Eye className="h-3.5 w-3.5" />
                           <span>{isPreviewing ? 'Close' : 'View'}</span>
                         </button>
                         {userRole !== 'VIEWER' && (
                           <button
                             onClick={() => handleRestore(snap)}
-                            className="flex items-center gap-0.5 text-blue-400 hover:text-blue-300 transition-colors"
-                            title="Restore this version"
+                            className="flex items-center gap-0.5 text-blue-400 hover:text-blue-300 transition-colors font-medium"
                           >
-                            <RotateCcw className="h-3 w-3" />
+                            <RotateCcw className="h-3.5 w-3.5" />
                             <span>Restore</span>
                           </button>
                         )}
@@ -288,24 +276,23 @@ export default function VersionHistory({
         </div>
       </div>
 
-      {/* AI Summary Panel */}
-      <div className="p-4 border-t border-white/5 bg-black/30">
+      <div className="p-4 border-t border-white/[0.04] bg-black/20">
         <button
           onClick={generateAiSummary}
           disabled={summarizing}
-          className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 disabled:from-neutral-800 disabled:to-neutral-800 text-white rounded text-xs py-2 font-medium transition-all shadow-md cursor-pointer border border-violet-500/30"
+          className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600/20 to-indigo-600/20 hover:from-violet-600/35 hover:to-indigo-600/35 text-indigo-300 rounded-lg text-xs py-2.5 font-semibold transition-all border border-indigo-500/20 cursor-pointer"
         >
           {summarizing ? (
             <RefreshCw className="h-3.5 w-3.5 animate-spin" />
           ) : (
-            <BrainCircuit className="h-3.5 w-3.5" />
+            <BrainCircuit className="h-3.5 w-3.5 text-indigo-400" />
           )}
-          <span>{summarizing ? 'Analyzing versions...' : 'AI Version Summary'}</span>
+          <span>Analyze Checkpoints</span>
         </button>
 
         {aiSummary && (
-          <div className="mt-3 p-2.5 rounded bg-violet-950/20 border border-violet-500/20 text-[11px] text-neutral-300 max-h-40 overflow-y-auto leading-relaxed">
-            <span className="font-semibold text-violet-400 block mb-1">AI Snapshot Analysis:</span>
+          <div className="mt-3 p-3 rounded-lg bg-indigo-950/10 border border-indigo-500/15 text-[11px] text-neutral-400 max-h-40 overflow-y-auto leading-relaxed">
+            <span className="font-semibold text-indigo-400 block mb-1.5">AI Analysis:</span>
             <div className="whitespace-pre-wrap">{aiSummary}</div>
           </div>
         )}

@@ -5,8 +5,8 @@ export interface LocalDocument {
   title: string;
   content: string;
   version: number;
-  updatedAt: number; // UTC timestamp
-  isDirty: number; // 0 = false, 1 = true (using number for easier indexing)
+  updatedAt: number;
+  isDirty: number;
 }
 
 export interface OfflineMutation {
@@ -38,7 +38,6 @@ class EdtechDatabase extends Dexie {
 
 export const localDb = new EdtechDatabase();
 
-// Database helper functions
 export async function getLocalDocument(id: string): Promise<LocalDocument | undefined> {
   return await localDb.documents.get(id);
 }
@@ -63,7 +62,6 @@ export async function queueMutation(
   };
   
   await localDb.transaction('rw', [localDb.documents, localDb.mutationQueue], async () => {
-    // 1. Update the document locally
     await localDb.documents.put({
       id: documentId,
       title: payload.title,
@@ -72,8 +70,6 @@ export async function queueMutation(
       updatedAt: payload.updatedAt,
       isDirty: 1,
     });
-    
-    // 2. Add mutation to queue
     await localDb.mutationQueue.put(mutation);
   });
 }
@@ -102,3 +98,4 @@ export async function clearSyncedMutationsForDoc(documentId: string, uptoTimesta
     
   await localDb.mutationQueue.bulkDelete(mutationsToDelete.map(m => m.id));
 }
+
